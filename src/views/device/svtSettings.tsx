@@ -32,10 +32,10 @@ export const SVTSettings = ({
     settingsFields.push({ ...base_frequency, group: SETTING_GROUPS.basic });
   }
   if (communication_period) {
-    settingsFields.push({ ...communication_period, group: SETTING_GROUPS.dat });
+    settingsFields.push({ ...communication_period, group: SETTING_GROUPS.basic });
   }
   if (communication_offset) {
-    settingsFields.push({ ...communication_offset, group: SETTING_GROUPS.dat });
+    settingsFields.push({ ...communication_offset, group: SETTING_GROUPS.basic });
   }
   const commonSampleRelatedFields: DeviceSetting[] = [];
   if (sample_period) {

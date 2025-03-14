@@ -1,8 +1,9 @@
 import React from 'react';
-import { Col, Spin } from 'antd';
+import { Col, Empty, Spin } from 'antd';
 import { ChartMark, Card, Flex, Grid } from '../../../components';
 import { RangeDatePicker } from '../../../components/rangeDatePicker';
 import dayjs from '../../../utils/dayjsUtils';
+import { TrendData } from '../../asset-common';
 import { useDateRange, useTrendData } from './useTrend';
 import { AnalysisContent } from './analysisContent';
 import { Trend } from './trend';
@@ -10,12 +11,6 @@ import { Trend } from './trend';
 export const Index = ({ id }: { id: number }) => {
   const { range, setRange } = useDateRange();
   const { loading, data } = useTrendData(id, range);
-  const [selected, setSelected] = React.useState<number | undefined>();
-  const timestamp = selected ?? data.find((d) => !!d.selected)?.timestamp;
-  const lines: string[] = [];
-  if (timestamp) {
-    lines.push(dayjs.unix(timestamp).local().format('YYYY-MM-DD HH:mm:ss'));
-  }
 
   return (
     <Grid>
@@ -28,27 +23,46 @@ export const Index = ({ id }: { id: number }) => {
       </Col>
       <Col span={24}>
         <Spin spinning={loading}>
-          {lines.length > 0 ? (
-            <Grid>
-              <Col span={24}>
-                <ChartMark.Context
-                  initial={{
-                    cursor: 'line',
-                    marks: lines.map((line) => ({ name: line, data: line }))
-                  }}
-                >
-                  <Trend data={data} onClick={(t) => setSelected(dayjs(t).unix())} />
-                </ChartMark.Context>
-              </Col>
-              {timestamp && (
-                <Col span={24}>
-                  <AnalysisContent id={id} timestamp={timestamp} key={timestamp} />
-                </Col>
-              )}
-            </Grid>
-          ) : null}
+          <Content data={data} id={id} key={JSON.stringify(data)} />
         </Spin>
       </Col>
     </Grid>
   );
 };
+
+function Content({ data, id }: { data: TrendData[]; id: number }) {
+  const [selected, setSelected] = React.useState<number | undefined>(
+    data.find((d) => !!d.selected)?.timestamp
+  );
+  const lines: string[] = [];
+  if (selected) {
+    lines.push(dayjs.unix(selected).local().format('YYYY-MM-DD HH:mm:ss'));
+  }
+  if (lines.length === 0) {
+    return (
+      <Card>
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+      </Card>
+    );
+  } else {
+    return (
+      <Grid>
+        <Col span={24}>
+          <ChartMark.Context
+            initial={{
+              cursor: 'line',
+              marks: lines.map((line) => ({ name: line, data: line }))
+            }}
+          >
+            <Trend data={data} onClick={setSelected} />
+          </ChartMark.Context>
+        </Col>
+        {selected && (
+          <Col span={24}>
+            <AnalysisContent id={id} timestamp={selected} key={selected} />
+          </Col>
+        )}
+      </Grid>
+    );
+  }
+}
